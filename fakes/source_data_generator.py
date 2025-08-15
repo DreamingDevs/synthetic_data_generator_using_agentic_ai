@@ -3,21 +3,14 @@ import random
 from faker import Faker
 
 '''
-This code is to insert production data into MovieReviews database.
+This code is going to to insert data into MovieReviews database.
+The MovieReviews Database is used to test tine synthetic data generation by the agentic AI application.
 '''
 
 #---------- CONFIG ----------
 SERVER = 'vm-synthetic-da\\SQLEXPRESS'  # Change if needed
 DATABASE = 'MovieReviews'
-USERNAME = 'sa'  # Leave blank for Windows Authentication
-PASSWORD = 'Jigzaz$1234567'  # Leave blank for Windows Authentication
-USE_WINDOWS_AUTH = True
-
-#---------- CONNECTION ----------
-if USE_WINDOWS_AUTH:
-    conn_str = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;'
-else:
-    conn_str = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
+conn_str = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;'
 
 conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
