@@ -1,0 +1,5 @@
+faker
+pyodb
+crewai
+crewai-tools
+PyYAML
