@@ -33,7 +33,6 @@ We use a **Windows 11 VM** as the development environment. Create an Azure Windo
 ```
 faker
 pyodbc
-pyodb
 crewai
 crewai-tools
 PyYAML
@@ -135,7 +134,7 @@ Use [validate.sql](./scripts/validate.sql) to check correctness.
 
 ## 🛠️ Tools Overview
 
-To keep the project modular and extensible, we implemented **tools** that the agents can call when performing analysis or transformations. Each tool is a standalone component, so future agents (like Optimizer, Validator) can reuse them.
+To keep the project modular and extensible, we implemented **tools** (under the tools folder) that the agents can call when performing analysis or transformations. Each tool is a standalone component, so future agents (like Optimizer, Validator) can reuse them.
 
 ### 🔌 `db_connection_tool.py`
 * Provides a tool interface for connecting to SQL Server.

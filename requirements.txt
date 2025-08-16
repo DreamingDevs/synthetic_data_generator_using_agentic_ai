@@ -1,6 +1,5 @@
 faker
 pyodbc
-pyodb
 crewai
 crewai-tools
 PyYAML

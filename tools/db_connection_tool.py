@@ -14,13 +14,11 @@ class DBConnectionTool(BaseTool):
     )
 
     def _run(
-        self,
-        server: str,
-        database: str
+        self
     ):
         conn = pyodbc.connect(Config.get_connection_string())
         conn.autocommit = True
         ConnectionManager.set_connection(conn, {
-            "server": server, "database": database, "auth":  "windows"
+            "server": Config.DB_SERVER, "database": Config.DB_NAME, "auth":  "windows"
         })
-        return f"✅ Connected to '{database}' on '{server}'. Stored connection for subsequent tools."
+        return f"✅ Connected to '{Config.DB_NAME}' on '{Config.DB_NAME}'. Stored connection for subsequent tools."
