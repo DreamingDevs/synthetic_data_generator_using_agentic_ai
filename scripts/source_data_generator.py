@@ -1,6 +1,9 @@
+import sys, os
 import pyodbc
 import random
 from faker import Faker
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import Config
 
 '''
 This code is going to to insert data into MovieReviews database.
@@ -8,11 +11,7 @@ The MovieReviews Database is used to test tine synthetic data generation by the 
 '''
 
 #---------- CONFIG ----------
-SERVER = 'vm-synthetic-da\\SQLEXPRESS'  # Change if needed
-DATABASE = 'MovieReviews'
-conn_str = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};Trusted_Connection=yes;'
-
-conn = pyodbc.connect(conn_str)
+conn = pyodbc.connect(Config.get_connection_string())
 cursor = conn.cursor()
 fake = Faker()
 

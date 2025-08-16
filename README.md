@@ -83,15 +83,27 @@ agentic-ai-poc/
 
 ---
 
-## 🎬 Step 1: Create MovieReviews Database
+## 🛠️ Step 1: Setup Environment Variables
+
+Create `.env` file and setup below variables. The variables are loaded into application through [config.py](config.py).
 
 > Note: For this PoC, we will use a sample MovieReviews database to test the overall flow.
 
-Run the [create_schema.sql](../SyntheticDataGenerator/scripts/create_schema.sql) script in **SQL Server Management Studio (SSMS)**:
+```txt
+DB_SERVER=vm-synthetic-da\SQLEXPRESS
+DB_NAME=MovieReviews
+DB_DRIVER=ODBC Driver 17 for SQL Server
+```
 
 ---
 
-## 🎬 Step 2: Generate Sample Data
+## 🎬 Step 2: Create Source Database
+
+Run the [create_schema.sql](./scripts/create_schema.sql) script in **SQL Server Management Studio (SSMS)**:
+
+---
+
+## 🎬 Step 3: Generate Sample Data
 
 Run the Python script:
 
@@ -115,9 +127,9 @@ python scripts/source_data_generator.py
 
 ---
 
-## ✅ Step 3: Validate Data Distribution
+## ✅ Step 4: Validate Source Data Distribution
 
-Use [validate.sql](../SyntheticDataGenerator/scripts/validate.sql) to check correctness.
+Use [validate.sql](./scripts/validate.sql) to check correctness.
 
 ---
 
