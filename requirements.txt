@@ -4,3 +4,4 @@ pyodb
 crewai
 crewai-tools
 PyYAML
+python-dotenv

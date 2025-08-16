@@ -37,6 +37,7 @@ pyodb
 crewai
 crewai-tools
 PyYAML
+python-dotenv
 ```
 
 ---
@@ -74,6 +75,8 @@ agentic-ai-poc/
 │   └── evaluator_agent.py       # Evaluator Agent using CrewAI + Azure AI Foundry
 │
 ├── config.py                    # Configuration (DB creds, Azure AI Foundry keys)
+├── main.py                      # Entrypoint to execute the end-to-end agentic workflow
+├── .env                         # Holds the environment variables configuration
 ├── requirements.txt             # Python dependencies
 └── README.md                    # Project documentation
 ```

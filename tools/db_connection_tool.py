@@ -2,6 +2,7 @@
 import pyodbc
 from crewai_tools import BaseTool
 from .connection_manager import ConnectionManager
+from config import Config
 
 class DBConnectionTool(BaseTool):
     name = "Connect to SQL Server Database"
@@ -17,7 +18,7 @@ class DBConnectionTool(BaseTool):
         server: str,
         database: str
     ):
-        conn = pyodbc.connect(f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};Trusted_Connection=yes;TrustServerCertificate=yes;")
+        conn = pyodbc.connect(Config.get_connection_string())
         conn.autocommit = True
         ConnectionManager.set_connection(conn, {
             "server": server, "database": database, "auth":  "windows"
