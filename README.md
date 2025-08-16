@@ -118,8 +118,6 @@ Use [validate.sql](../SyntheticDataGenerator/scripts/validate.sql) to check corr
 
 ---
 
----
-
 ## 🛠️ Tools Overview
 
 To keep the project modular and extensible, we implemented **tools** that the agents can call when performing analysis or transformations. Each tool is a standalone component, so future agents (like Optimizer, Validator) can reuse them.
