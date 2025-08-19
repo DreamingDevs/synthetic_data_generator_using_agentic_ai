@@ -6,7 +6,7 @@ if __name__ == "__main__":
     evaluator = create_evaluator_agent()
 
     # 👉 Edit these for your environment (or pass via the UI at runtime)
-    SERVER = "localhost\\SQLEXPRESS"
+    SERVER = "vm-synthetic-da\\SQLEXPRESS"
     DATABASE = "MovieReviews"
     # If you need SQL auth, add username/password in the tool call step (the agent can also request it)
 
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     task = Task(
         description=(
             "Connect to the target SQL Server database and produce a YAML report. "
-            "You should: (1) connect using DBConnectionTool, "
+            "You should: (1) connect using SQL Server database, "
             "(2) get schema via Get Database Schema, "
             "(3) get table row counts, "
             "(4) get foreign keys and their distributions, "
@@ -27,4 +27,4 @@ if __name__ == "__main__":
     )
 
     crew = Crew(agents=[evaluator], tasks=[task], verbose=True)
-    crew.run()
+    crew.kickoff()
