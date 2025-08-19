@@ -3,7 +3,7 @@ import yaml
 import json
 from pathlib import Path
 from typing import Any, Dict, Optional
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 
 def _coerce_to_dict_or_list(value: Any):
     if value is None:
@@ -25,8 +25,8 @@ def _coerce_to_dict_or_list(value: Any):
     return value
 
 class SaveYAMLTool(BaseTool):
-    name = "Save YAML Report"
-    description = (
+    name: str = "Save YAML Report"
+    description: str = (
         "Save analysis results to a YAML file. "
         "Args: file_path (default 'schema_analysis.yaml'). "
         "You can pass a single 'data' object (JSON/YAML string or dict), "
@@ -43,7 +43,7 @@ class SaveYAMLTool(BaseTool):
         foreign_keys: Optional[Any] = None,
         fk_distributions: Optional[Any] = None,
         notes: Optional[str] = None
-    ):
+    ) -> str:
         payload: Dict[str, Any] = {}
 
         if data is not None:

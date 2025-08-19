@@ -1,12 +1,40 @@
 # tools/analysis_tools.py
-from crewai_tools import BaseTool
+from typing import List, Dict, Optional
+from pydantic import BaseModel
+from crewai.tools import BaseTool
 from .connection_manager import ConnectionManager
 
-class GetRowCountsTool(BaseTool):
-    name = "Get Table Row Counts"
-    description = "Return row counts for all base tables (clustered/heap partitions)."
 
-    def _run(self):
+# ---------- Pydantic Models for Structured Outputs ----------
+class TableRowCount(BaseModel):
+    table: str
+    rows: int
+
+
+class FKParentRef(BaseModel):
+    schema_name: str
+    table: str
+    column: str
+
+
+class FKDistributionEntry(BaseModel):
+    ref_value: Optional[str]
+    count: int
+
+
+class FKDistribution(BaseModel):
+    fk_name: str
+    parent: FKParentRef
+    referenced: FKParentRef
+    top: List[FKDistributionEntry]
+
+
+# ---------- Tool Implementations ----------
+class GetRowCountsTool(BaseTool):
+    name: str = "Get Table Row Counts"
+    description: str = "Return row counts for all base tables (clustered/heap partitions)."
+
+    def _run(self) -> List[TableRowCount]:
         conn = ConnectionManager.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -19,21 +47,21 @@ class GetRowCountsTool(BaseTool):
             ORDER BY RowCounts DESC, s.name, t.name
         """)
         rows = cursor.fetchall()
-        return [{"table": f"{r[0]}.{r[1]}", "rows": int(r[2])} for r in rows]
+        return [TableRowCount(table=f"{r[0]}.{r[1]}", rows=int(r[2])) for r in rows]
 
 
 class GetFKDistributionsTool(BaseTool):
-    name = "Get Foreign Key Distributions"
-    description = (
+    name: str = "Get Foreign Key Distributions"
+    description: str = (
         "For each foreign key, compute how many parent rows reference each referenced key value. "
         "Returns a dict keyed by 'parent_schema.parent_table -> ref_schema.ref_table'."
     )
 
-    def _run(self, top_n_per_relationship: int = 50, include_zeroes: bool = True):
+    def _run(self, top_n_per_relationship: int = 50, include_zeroes: bool = True) -> Dict[str, FKDistribution]:
         conn = ConnectionManager.get_connection()
         cursor = conn.cursor()
 
-        # Discover FKs first (self-contained)
+        # Discover foreign keys
         cursor.execute("""
             SELECT
                 fk.name AS FK_Name,
@@ -62,10 +90,11 @@ class GetFKDistributionsTool(BaseTool):
         """)
         fks = cursor.fetchall()
 
-        distributions = {}
+        distributions: Dict[str, FKDistribution] = {}
+
         for (fk_name, p_schema, p_table, p_col, r_schema, r_table, r_col) in fks:
             rel_key = f"{p_schema}.{p_table}->{r_schema}.{r_table}"
-            # LEFT JOIN from referenced to parent ensures we include referenced values with 0 children
+
             base_query = f"""
                 SELECT ref.[{r_col}] AS RefValue, COUNT(parent.[{p_col}]) AS RefCount
                 FROM [{r_schema}].[{r_table}] AS ref
@@ -80,16 +109,16 @@ class GetFKDistributionsTool(BaseTool):
 
             cursor.execute(final_query)
             rows = cursor.fetchall()
-            vals = [{"ref_value": r[0], "count": int(r[1])} for r in rows]
+            vals = [FKDistributionEntry(ref_value=r[0], count=int(r[1])) for r in rows]
 
             if not include_zeroes:
-                vals = [v for v in vals if v["count"] > 0]
+                vals = [v for v in vals if v.count > 0]
 
-            distributions.setdefault(rel_key, {
-                "fk_name": fk_name,
-                "parent": {"schema": p_schema, "table": p_table, "column": p_col},
-                "referenced": {"schema": r_schema, "table": r_table, "column": r_col},
-                "top": vals
-            })
+            distributions[rel_key] = FKDistribution(
+                fk_name=fk_name,
+                parent=FKParentRef(schema_name=p_schema, table=p_table, column=p_col),
+                referenced=FKParentRef(schema_name=r_schema, table=r_table, column=r_col),
+                top=vals
+            )
 
         return distributions

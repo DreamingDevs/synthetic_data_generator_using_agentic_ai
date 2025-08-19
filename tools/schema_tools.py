@@ -1,12 +1,12 @@
-# tools/schema_tools.py
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 from .connection_manager import ConnectionManager
+from typing import Dict, List, Any
 
 class GetSchemaInfoTool(BaseTool):
-    name = "Get Database Schema"
-    description = "Return all tables and columns with data types from INFORMATION_SCHEMA."
+    name: str = "Get Database Schema"
+    description: str = "Return all tables and columns with data types from INFORMATION_SCHEMA."
 
-    def _run(self):
+    def _run(self) -> Dict[str, List[Dict[str, Any]]]:
         conn = ConnectionManager.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -15,7 +15,7 @@ class GetSchemaInfoTool(BaseTool):
             ORDER BY TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION
         """)
         rows = cursor.fetchall()
-        result = {}
+        result: Dict[str, List[Dict[str, Any]]] = {}
         for schema, table, col, dtype, nullable in rows:
             key = f"{schema}.{table}"
             result.setdefault(key, []).append({
@@ -27,10 +27,10 @@ class GetSchemaInfoTool(BaseTool):
 
 
 class GetForeignKeysTool(BaseTool):
-    name = "Get Foreign Keys"
-    description = "Return all foreign keys (parent_table/column -> referenced_table/column)."
+    name: str = "Get Foreign Keys"
+    description: str = "Return all foreign keys (parent_table/column -> referenced_table/column)."
 
-    def _run(self):
+    def _run(self) -> List[Dict[str, str]]:
         conn = ConnectionManager.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -60,7 +60,7 @@ class GetForeignKeysTool(BaseTool):
             ORDER BY s1.name, tp.name
         """)
         rows = cursor.fetchall()
-        fks = []
+        fks: List[Dict[str, str]] = []
         for (fk_name, p_table, p_col, r_table, r_col, p_schema, r_schema) in rows:
             fks.append({
                 "fk_name": fk_name,
