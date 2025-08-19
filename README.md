@@ -82,7 +82,29 @@ agentic-ai-poc/
 
 ---
 
-## 🛠️ Step 1: Setup Environment Variables
+## 🌐 Step 1: Setup Azure AI Foundry Project with o4-mini
+
+Follow these steps to create an Azure AI Foundry project and deploy the o4-mini reasoning model.
+
+> Prerequisite: An active Azure subscription with Azure OpenAI access approved.
+1. Create Azure AI Foundry instance along with a project
+   - Select Inbound access from All Networks, later we can change it to specific IP
+2. Go to Networking section, choose `Selected Networks and Private Endpoints` and add Windows VM public IP for connectivity
+3. Navigate to Azure AI Foundry Portal
+4. Go to `Models + endpoints` section
+5. Deploy the o4-mini Model from `Deploy base model` option
+6. Find below configuration details and keep them handy
+
+```
+AZURE_API_BASE=https://<Azure Foundry instance Name>.cognitiveservices.azure.com/
+AZURE_API_KEY=<Azure Foundry Project Key>
+AZURE_OPENAI_DEPLOYMENT=o4-mini
+AZURE_API_VERSION=2024-12-01-preview
+```
+
+---
+
+## 🛠️ Step 2: Setup Environment Variables
 
 Create `.env` file and setup below variables. The variables are loaded into application through [config.py](config.py).
 
@@ -92,17 +114,22 @@ Create `.env` file and setup below variables. The variables are loaded into appl
 DB_SERVER=vm-synthetic-da\SQLEXPRESS
 DB_NAME=MovieReviews
 DB_DRIVER=ODBC Driver 17 for SQL Server
+# Azure OpenAI
+AZURE_API_BASE=https://<Azure Foundry instance Name>.cognitiveservices.azure.com/
+AZURE_API_KEY=<Azure Foundry Project Key>
+AZURE_OPENAI_DEPLOYMENT=o4-mini
+AZURE_API_VERSION=2024-12-01-preview
 ```
 
 ---
 
-## 🎬 Step 2: Create Source Database
+## 🎬 Step 3: Create Source Database
 
 Run the [create_schema.sql](./scripts/create_schema.sql) script in **SQL Server Management Studio (SSMS)**:
 
 ---
 
-## 🎬 Step 3: Generate Sample Data
+## 🎬 Step 4: Generate Sample Data
 
 Run the Python script:
 
@@ -126,7 +153,7 @@ python scripts/source_data_generator.py
 
 ---
 
-## ✅ Step 4: Validate Source Data Distribution
+## ✅ Step 5: Validate Source Data Distribution
 
 Use [validate.sql](./scripts/validate.sql) to check correctness.
 
