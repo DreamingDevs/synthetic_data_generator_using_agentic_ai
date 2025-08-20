@@ -125,7 +125,7 @@ AZURE_API_VERSION=2024-12-01-preview
 
 ## 🎬 Step 3: Create Source Database
 
-Run the [create_schema.sql](./scripts/create_schema.sql) script in **SQL Server Management Studio (SSMS)**:
+Run the [create_schema.sql](./db/create_schema.sql) script in **SQL Server Management Studio (SSMS)**:
 
 ---
 
@@ -134,7 +134,7 @@ Run the [create_schema.sql](./scripts/create_schema.sql) script in **SQL Server 
 Run the Python script:
 
 ```bash
-python scripts/source_data_generator.py
+python db/source_data_generator.py
 ```
 
 ### Data Generation Rules
@@ -155,7 +155,7 @@ python scripts/source_data_generator.py
 
 ## ✅ Step 5: Validate Source Data Distribution
 
-Use [validate.sql](./scripts/validate.sql) to check correctness.
+Use [validate.sql](./db/validate.sql) to check correctness.
 
 ---
 
