@@ -5,4 +5,3 @@ crewai-tools
 PyYAML
 python-dotenv
 pydantic
-langchain_openai
