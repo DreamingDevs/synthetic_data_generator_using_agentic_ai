@@ -2,208 +2,197 @@
 
 ## 🎯 Purpose
 
-The goal of this project is to build an **Agentic AI system** using the **Optimizer–Evaluator–Validator pattern**. The system:
+The goal of this project is to build an Agentic AI system using the Optimizer–Evaluator–Validator pattern. The system:
 
-* Understands a **production database schema, data distribution and usage patterns**.
-* Creates a **synthetic database** with the same schema.
-* Generates **synthetic data** that follows the source database's **distributions and usage patterns**.
-* Uses **CrewAI agents** (Evaluator, Optimizer, Validator) integrated with **Azure AI Foundry** (`o4-mini` model).
+* Understands a production database schema, data distributions, and usage patterns.
+* Creates a synthetic database with the same schema.
+* Generates synthetic data that follows the source database’s distributions and usage patterns.
+* Uses CrewAI agents (Evaluator, Optimizer, Validator) integrated with Azure AI Foundry (`o4-mini` model).
 
-This project helps teams safely generate test data without exposing production data.
-
----
-
-## 🖥️ Environment Setup
-
-We use a **Windows 11 VM** as the development environment. Create an Azure Windows VM with 4 vCores and 16GB memory.
-
-### Install Prerequisites
-
-- SQL Server 2022 Express
-- SQL Server Management Studio 21
-- Git 2.50.1
-- Python 3.13.6
-- VS Code 1.103.1
-- Microsoft ODBC Driver 17 (or 18) for SQL Server
+This project enables teams to safely generate test data without exposing production data.
 
 ---
 
-#### requirements.txt
+## 🖥️ Environment setup
 
+These instructions target macOS. Install the following tools (Homebrew recommended):
+
+- Cursor (e.g., 1.4.5)
+- Git (e.g., 2.39.5)
+- Python 3.13.x
+- `unixodbc`
+- `msodbcsql18`
+- `mssql-tools`
+- Docker Desktop
+- Azure Data Studio
+
+> Microsoft’s ODBC driver and tools are installed from Microsoft’s Homebrew repo:
 ```
-faker
-pyodbc
-crewai
-crewai-tools
-PyYAML
-python-dotenv
+brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+brew update
+HOMEBREW_NO_ENV_FILTERING=1 ACCEPT_EULA=Y brew install msodbcsql18 mssql-tools
+odbcinst -q -d -n "ODBC Driver 18 for SQL Server"   # verify installation
 ```
 
+> If a Python virtual environment already existed prior to installing the ODBC driver, reinstall `pyodbc`:
+```
+pip uninstall pyodbc -y
+pip install pyodbc --no-binary :all:
+```
+
 ---
 
-### Install Python Dependencies
+## 🌐 Set up Azure AI Foundry project with o4-mini
 
-Create a virtual environment and install requirements using Git Bash:
+Create an Azure AI Foundry project and deploy the `o4-mini` reasoning model.
 
-```powershell
+> Prerequisite: An active Azure subscription with Azure OpenAI access approved.
+
+1. Create an Azure AI Foundry hub and project.
+   - Start with inbound access from all networks. You can restrict to specific IPs later.
+2. In Networking, choose Selected networks and private endpoints, and add your Mac’s IP address.
+3. In the Azure AI Foundry portal, navigate to Models + endpoints in your project.
+4. Deploy the `o4-mini` model via Deploy base model.
+5. Capture the following configuration values:
+
+```
+AZURE_API_BASE=https://<azure-ai-foundry-resource>.services.ai.azure.com/
+AZURE_API_KEY=<project API key>
+AZURE_OPENAI_DEPLOYMENT=o4-mini
+AZURE_API_VERSION=2024-12-01-preview
+```
+
+---
+
+## 🛢️ Run SQL Server in Docker on macOS
+
+Set up a lightweight SQL Server environment on macOS:
+
+1. Install Docker Desktop
+   ```
+   brew install --cask docker
+   ```
+   Launch Docker and wait until it shows “Docker Engine is running”.
+
+2. Pull the SQL Edge image
+   ```
+   docker pull mcr.microsoft.com/azure-sql-edge
+   ```
+
+3. Run the SQL container
+   ```
+   docker run -e "ACCEPT_EULA=1" \
+           -e "MSSQL_SA_PASSWORD=XXXXX" \
+           -e "MSSQL_PID=Developer" \
+           -p 1433:1433 \
+           -d --name sql \
+           mcr.microsoft.com/azure-sql-edge
+   ```
+
+   - `ACCEPT_EULA=1`: Accepts the SQL Server license.
+   - `MSSQL_SA_PASSWORD`: SA (system administrator) password (must meet complexity requirements).
+   - `MSSQL_PID=Developer`: Developer Edition (full feature set for dev/test).
+   - `-p 1433:1433`: Exposes SQL Server on port 1433.
+
+4. Install Azure Data Studio (for database management)
+   ```
+   brew install --cask azure-data-studio
+   ```
+
+5. Connect to SQL Server
+   
+   - Server: `localhost`
+   - Port: `1433`
+   - User: `SA`
+   - Password: your SA password
+
+> Note: This PoC uses a sample `MovieReviews` database created in later sections.
+
+
+## 🐍 Create a virtual environment and install dependencies
+
+Review [requirements.txt](./requirements.txt), then run:
+
+```
 python -m venv .venv
-source .venv\Scripts\activate
-
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+To deactivate, run `deactivate`.
+
 ---
 
-## 📂 Project Structure
+## 📂 Project structure
 
-```bash
+```
 agentic-ai-poc/
 ├── db/
-│   ├── create_schema.sql        # Creates MovieReviews schema with IF NOT EXISTS
+│   ├── create_schema.sql        # Creates MovieReviews schema if not exists
 │   ├── source_data_generator.py # Generates sample data (genres, movies, reviews)
 │   ├── validate.sql             # SQL validation queries for distribution checks
 │
-├── tools/
-│   ├── db_connection_tool.py    # Tool to connect to SQL Server
-│   ├── schema_tools.py          # Tool to analyze schema
-│   ├── data_analysis_tools.py   # Tool to analyze data distributions
-│   ├── yaml_tools.py            # Tool to write analysis into YAML files
-|   ├── connection_manager.py    # Holds the connection to SQL Server which can be reused by tools 
-│
-├── agents/
-│   └── evaluator_agent.py       # Evaluator Agent using CrewAI + Azure AI Foundry
-│
-├── config.py                    # Configuration (DB creds, Azure AI Foundry keys)
+├── config.py                    # Configuration (DB credentials, Azure AI Foundry keys)
 ├── main.py                      # Entrypoint to execute the end-to-end agentic workflow
-├── .env                         # Holds the environment variables configuration
+├── .env                         # Environment variables (not committed)
 ├── requirements.txt             # Python dependencies
 └── README.md                    # Project documentation
 ```
 
 ---
 
-## 🌐 Step 1: Setup Azure AI Foundry Project with o4-mini
+## 🛠️ Configure environment variables
 
-Follow these steps to create an Azure AI Foundry project and deploy the o4-mini reasoning model.
-
-> Prerequisite: An active Azure subscription with Azure OpenAI access approved.
-1. Create Azure AI Foundry instance along with a project
-   - Select Inbound access from All Networks, later we can change it to specific IP
-2. Go to Networking section, choose `Selected Networks and Private Endpoints` and add Windows VM public IP for connectivity
-3. Navigate to Azure AI Foundry Portal
-4. Go to `Models + endpoints` section
-5. Deploy the o4-mini Model from `Deploy base model` option
-6. Find below configuration details and keep them handy
+Create a `.env` file with the variables below. They are loaded by [config.py](config.py).
 
 ```
-AZURE_API_BASE=https://<Azure Foundry instance Name>.cognitiveservices.azure.com/
-AZURE_API_KEY=<Azure Foundry Project Key>
-AZURE_OPENAI_DEPLOYMENT=o4-mini
-AZURE_API_VERSION=2024-12-01-preview
-```
-
----
-
-## 🛠️ Step 2: Setup Environment Variables
-
-Create `.env` file and setup below variables. The variables are loaded into application through [config.py](config.py).
-
-> Note: For this PoC, we will use a sample MovieReviews database to test the overall flow.
-
-```txt
-DB_SERVER=vm-synthetic-da\SQLEXPRESS
+DB_SERVER=localhost
 DB_NAME=MovieReviews
-DB_DRIVER=ODBC Driver 17 for SQL Server
-# Azure OpenAI
-AZURE_API_BASE=https://<Azure Foundry instance Name>.cognitiveservices.azure.com/
-AZURE_API_KEY=<Azure Foundry Project Key>
+DB_DRIVER=ODBC Driver 18 for SQL Server
+DB_USER=SA
+DB_PASSWORD=<your SA password>
+
+# Azure AI Foundry
+AZURE_API_BASE=https://<azure-ai-foundry-resource>.services.ai.azure.com/
+AZURE_API_KEY=<project API key>
 AZURE_OPENAI_DEPLOYMENT=o4-mini
 AZURE_API_VERSION=2024-12-01-preview
 ```
 
----
-
-## 🎬 Step 3: Create Source Database
-
-Run the [create_schema.sql](./db/create_schema.sql) script in **SQL Server Management Studio (SSMS)**:
+> Security note: Never commit `.env` to version control.
 
 ---
 
-## 🎬 Step 4: Generate Sample Data
+## 📜 Create the source database
+
+Create the `MovieReviews` schema by running [db/create_schema.sql](./db/create_schema.sql) using Azure Data Studio.
+
+---
+
+## 🎬 Generate sample data
 
 Run the Python script:
 
-```bash
+```
 python db/source_data_generator.py
 ```
 
-### Data Generation Rules
+### Data generation rules
 
-1. **Genres**: 20 real genres (Action, Drama, Comedy, etc.).
-2. **Movies**: 1000 movies.
-
-   * 3 genres → 60% of movies.
-   * 2 genres → 0 movies.
-   * Remaining 15 genres → 40% distributed.
-3. **Reviews**: 10,000 reviews.
-
-   * 500 movies → no reviews.
-   * 100 movies → 90% of reviews.
-   * Remaining 400 movies → 10% of reviews.
+1. Genres: 20 real genres (Action, Drama, Comedy, etc.).
+2. Movies: 1,000 movies.
+   * 60% of movies have 3 genres.
+   * 0 movies have exactly 2 genres.
+   * The remaining 40% are distributed across 15 genres.
+3. Reviews: 10,000 reviews.
+   * 500 movies have no reviews.
+   * 100 movies receive 90% of all reviews.
+   * The remaining 400 movies receive 10% of reviews.
 
 ---
 
-## ✅ Step 5: Validate Source Data Distribution
+## ✅ Validate source data distribution
 
-Use [validate.sql](./db/validate.sql) to check correctness.
-
----
-
-## 🛠️ Tools Overview
-
-To keep the project modular and extensible, we implemented **tools** (under the tools folder) that the agents can call when performing analysis or transformations. Each tool is a standalone component, so future agents (like Optimizer, Validator) can reuse them.
-
-### 🔌 `db_connection_tool.py`
-* Provides a tool interface for connecting to SQL Server.
-* Hands over an active connection to the **connection manager** for reuse.
-* Ensures that agents do not need to worry about raw DB connectivity.
-
-### 🔑 `connection_manager.py`
-* Maintains a **singleton connection** to SQL Server.
-* Allows all tools (schema analysis, data analysis, YAML writer) to reuse the same connection.
-* Helps in avoiding repeated open/close operations and keeps resource usage optimized.
-
-### 📊 `schema_tools.py`
-* Reads the database schema (tables, columns, datatypes, primary keys, foreign keys).
-* Returns schema metadata in a structured format.
-* Enables the agent to "understand" the database structure before analyzing data.
-
-### 📈 `data_analysis_tools.py`
-* Examines **data distributions** in tables.
-* Evaluates foreign key relationships (e.g., *movies per genre*, *reviews per movie*).
-* Provides statistical summaries that agents can later use for synthetic data generation.
-
-### 📝 `yaml_tools.py`
-* Takes analysis results and writes them into a structured **YAML file**.
-* YAML provides a portable, human-readable format that Optimizer and Validator agents can consume.
-* Ensures outputs are persisted, version-controlled, and shareable.
+Use [db/validate.sql](./db/validate.sql) to validate data distributions and correctness.
 
 ---
-
-## 🔗 How Tools Work Together
-
-1. **Evaluator Agent** triggers tools to:
-   - Connect to the database via `db_connection_tool.py`.
-   - Fetch schema metadata with `schema_tools.py`.
-   - Run data distribution analysis with `data_analysis_tools.py`.
-   - Store results into YAML using `yaml_tools.py`.
-   
-2. The YAML output becomes the **input for the Optimizer agent**, which will later generate synthetic data rules.  
-3. The **Validator agent** can rerun these tools to confirm that generated data matches the original distributions.
-
-
-## 📌 Notes
-
-* Deploying a model on Azure AI Foundry is free. Costs occur only when you consume tokens.
-* Ensure `pyodbc` has the correct **ODBC Driver 18** installed.
-* This PoC is designed for **SQL Server Express 2022**, but can be extended to other editions.
