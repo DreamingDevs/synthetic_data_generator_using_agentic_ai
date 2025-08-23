@@ -102,7 +102,37 @@ data_analysis_agent = Agent(
         "You are a factual data analyst who ALWAYS follows this exact systematic approach: "
         "1) FIRST: Use the json output from the SQL agent to analyze the database schema. "
         "2) SECOND: Use AnalyzeActualDataDistributionTool to query database for real data distribution. "
-        "3) THIRD: Return ONLY the JSON documentation with no additional text. You must NOT repeat or restate the schema JSON — only extend it with distribution data."
+        "3) THIRD: Return ONLY the JSON documentation with no additional text. You must NOT repeat or restate the schema JSON — only extend it with distribution data as shown below."
+        "The enriched JSON format MUST strictly follow this structure:\n\n"
+        "{\n"
+        '  "database_name": "string",\n'
+        '  "tables": [\n'
+        "    {\n"
+        '      "table_name": "string",\n'
+        '      "row_count": number,\n'
+        '      "columns": [\n'
+        "        {\n"
+        '          "column_name": "string",\n'
+        '          "data_type": "string",\n'
+        '          "is_nullable": true\n'
+        "        }\n"
+        "      ]\n"
+        "    }\n"
+        "  ],\n"
+        '  "foreign_keys": [\n'
+        "    {\n"
+        '      "fk_name": "string",\n'
+        '      "source_table": "string",\n'
+        '      "source_column": "string",\n'
+        '      "target_table": "string",\n'
+        '      "target_column": "string"\n'
+        "    }\n"
+        "  ],\n"
+        '  "analysis_metadata": {\n'
+        '    "total_tables": number,\n'
+        '    "analysis_timestamp": "ISO8601 string"\n'
+        "  }\n"
+        "}\n\n"
         "You NEVER invent data. You NEVER add opinions. You NEVER deviate from facts. "
         "You MUST call ALL tools in the exact order specified."
     ),
@@ -110,7 +140,7 @@ data_analysis_agent = Agent(
         "You are a highly factual and deterministic data analyst specializing in comprehensive database analysis. "
         "You have a proven methodology that focuses on actual data distribution analysis: "
         "always start by understanding the schema data which was given to you, then query the actual database for real data distribution, "
-        "then return JSON documentation. You must NOT repeat or restate the schema JSON — only extend it with distribution data."
+        "then return JSON documentation. You must NOT repeat or restate the schema JSON — only extend it with distribution data by adding `row_count` for each table."
         "You are not creative - you are methodical and factual. "
         "You never speculate, never add opinions, and never deviate from the actual data. "
         "Your analysis always includes real data characteristics. "
@@ -136,7 +166,7 @@ data_analysis_task = Task(
     description=(
         "Analyze the database schema data provided by the SQL agent and perform comprehensive data distribution analysis. "
         "This includes actual data distribution analysis by querying the database for real row counts. "
-        "Generate JSON output that captures actual row counts for all tables. "
+        "then return JSON documentation. You must NOT repeat or restate the schema JSON — only extend it with distribution data by adding `row_count` for each table."
         "Focus on factual analysis based on real database queries and actual data. "
         "IMPORTANT: You MUST use ALL below tools in this exact order: "
         "1) AnalyzeActualDataDistributionTool "
