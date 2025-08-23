@@ -5,7 +5,6 @@ Contains all the tools organized by functionality.
 
 from .database_tools import GetSchemaInfoTool, GetForeignKeysTool
 from .data_analysis_tools import (
-    AnalyzeSchemaPatternsTool,
     AnalyzeActualDataDistributionTool
 )
 
@@ -15,6 +14,11 @@ __all__ = [
     'GetForeignKeysTool',
     
     # Data analysis tools
-    'AnalyzeSchemaPatternsTool',
-    'AnalyzeActualDataDistributionTool'
+    'AnalyzeActualDataDistributionTool',
+    
+    # File operation tools
+    'SaveJSONToFileTool',
+    'SaveDatabaseSchemaAnalysisTool',
+    'SaveDataDistributionAnalysisTool',
+    'ListAnalysisFilesTool'
 ]
