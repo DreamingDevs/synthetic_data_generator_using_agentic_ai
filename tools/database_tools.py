@@ -13,7 +13,7 @@ from config import Config
 load_dotenv()
 
 @tool("Get Database Schema")
-def GetSchemaInfoTool() -> Dict[str, List[Dict[str, Any]]]:
+def GetSchemaInfoTool() -> Dict[str, Any]:
     """
     Fetches the complete database schema including all tables, columns, and their data types.
     
@@ -38,13 +38,25 @@ def GetSchemaInfoTool() -> Dict[str, List[Dict[str, Any]]]:
         """)
         rows = cursor.fetchall()
 
-        result: Dict[str, List[Dict[str, Any]]] = {}
+        result: Dict[str, Any] = {
+            "database_name": Config.DB_NAME,
+            "tables": []
+        }
+
+        table_map: Dict[str, List[Dict[str, Any]]] = {}
         for schema, table, col, dtype, nullable in rows:
             key = f"{schema}.{table}"
-            result.setdefault(key, []).append({
-                "column": col,
-                "datatype": dtype,
-                "nullable": nullable
+            table_map.setdefault(key, []).append({
+                "column_name": col,
+                "data_type": dtype,
+                "is_nullable": (nullable.upper() == "YES")
+            })
+
+        # Convert to list structure
+        for table_name, columns in table_map.items():
+            result["tables"].append({
+                "table_name": table_name,
+                "columns": columns
             })
         return result
     except Exception as e:

@@ -42,37 +42,26 @@ def AnalyzeActualDataDistributionTool(schema_data: str) -> Dict[str, Any]:
             conn = pyodbc.connect(Config.get_connection_string())
             cursor = conn.cursor()
             
-            # Get actual row counts for all tables
             table_row_counts = {}
-            
-            # Handle different data structures
-            schema_data = data.get('schema', {})
-            if not schema_data and 'tables' in data:
-                # If data has 'tables' structure, extract table names
-                for table_info in data['tables']:
-                    table_name = table_info.get('table_name', '')
-                    if table_name:
-                        try:
-                            cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-                            row_count = cursor.fetchone()[0]
-                            table_row_counts[table_name] = row_count
-                        except Exception as e:
-                            table_row_counts[table_name] = f"Error: {str(e)}"
-            else:
-                # Original schema structure
-                for table_name in schema_data.keys():
+            for table_info in data.get("tables", []):
+                table_name = table_info.get("table_name")
+                if table_name:
                     try:
                         cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
                         row_count = cursor.fetchone()[0]
                         table_row_counts[table_name] = row_count
+                        table_info["row_count"] = row_count  # <-- enrich table entry
                     except Exception as e:
                         table_row_counts[table_name] = f"Error: {str(e)}"
-            
-            return {
-                "table_row_counts": table_row_counts,
-                "total_tables_analyzed": len(table_row_counts),
+                        table_info["row_count"] = None
+
+            # Add metadata
+            data["analysis_metadata"] = {
+                "total_tables": len(table_row_counts),
                 "analysis_timestamp": datetime.datetime.now().isoformat()
             }
+
+            return data 
             
         finally:
             if cursor:
