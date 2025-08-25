@@ -32,11 +32,11 @@ def GetSqlSchemaAnalysisAgent():
             "  ],\n"
             '  "foreign_keys": [\n'
             "    {\n"
-            '      "fk_name": "string",\n'
-            '      "source_table": "string",\n'
-            '      "source_column": "string",\n'
-            '      "target_table": "string",\n'
-            '      "target_column": "string"\n'
+            '      "constraint_name": "string",\n'
+            '      "parent_table": "string",\n'
+            '      "parent_column": "string",\n'
+            '      "referenced_table": "string",\n'
+            '      "referenced_column": "string"\n'
             "    }\n"
             "  ]\n"
             "}\n\n"
